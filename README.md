@@ -8,8 +8,8 @@ The PMIx RFC process borrows liberally from other open source communities, but i
 
 The procedure has only three elements, which can be executed somewhat in parallel:
 
-* Submit an RFC - an author should start by forking the PMIx RFC
-  repository into their private Github space, and then creating a branch that will house the new RFC. Creation of the RFC begins by simply copying the provided [Template](https://github.com/pmix/RFCs/tree/master/Template.md), and then editing the file to provide the outlined information. When a draft is ready, the author can generate a pull request against the PMIx RFC repo to submit the RFC for consideration.
+* Submit an RFC - an author should start by forking the [PMIx RFC
+  repository](https://github.com/pmix/RFCs) into their private Github space, and then creating a branch that will house the new RFC. Creation of the RFC begins by simply copying the provided [Template](https://github.com/pmix/RFCs/tree/master/Template.md), and then editing the file to provide the outlined information. When a draft is ready, the author can generate a pull request against the PMIx RFC repo to submit the RFC for consideration.
 * Develop a prototype implementation - an author should start by forking
   the [PMIx master repository](https://github.com/pmix/master) into their private Github space, and then creating a branch that will house the new code. When complete, the author can generate a pull request against the PMIx master with the proposed changes. This PR _must_ be referenced in the RFC.
 * Send an email to the PMIx mailing list alerting members to the RFC. This
