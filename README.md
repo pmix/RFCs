@@ -52,4 +52,4 @@ The following key words are to be interpreted as defined below when used in a PM
    does not include the option (except, of course, for the feature the
    option provides).
 
-These terms must be used with care and sparingly.  In particular, they MUST only be used where it is actually required for interoperation or to limit behavior which has potential for causing harm, and _MUST\_NOT_ be used to try to impose a particular method on implementors.
+These terms must be used with care and sparingly.  In particular, they _MUST_ only be used where it is actually required for interoperation or to limit behavior which has potential for causing harm, and _MUST NOT_ be used to try to impose a particular method on implementors.
