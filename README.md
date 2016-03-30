@@ -13,7 +13,7 @@ The procedure has only three elements, which can be executed somewhat in paralle
 * Develop a prototype implementation - an author should start by forking
   the [PMIx master repository](https://github.com/pmix/master) into their private Github space, and then creating a branch that will house the new code. When complete, the author can generate a pull request against the PMIx master with the proposed changes. This PR _must_ be referenced in the RFC.
 * Send an email to the PMIx mailing list alerting members to the RFC. This
-  should include links to the RFC and the accompanying pull request, along with a very brief statement of the RFC's purpose (e.g., a copy of the abstract section).
+  should include links to the RFC and the accompanying pull request, along with a very brief statement of the RFC's purpose (e.g., a copy of the abstract section). Both the email and the PR shall include a proposed teleconference date when the author(s) would like to have the RFC reviewed. This date can be adjusted to provide adequate time to respond to comments and sufficient time for review, commensurate with the scale of the proposed changes.
 
 Once submitted, the RFC repository administrators will assign an RFC number to the proposal. This number should then be added to the submitted text in the RFC title section as per the Template.
 

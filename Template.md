@@ -18,6 +18,15 @@ Provide at least one of the following labels:
 
 While it is permissible to combine these labels in a single RFC, best practices are to separate such operations into individual RFCs. For example, it is requested that authors separate modifications from extensions to avoid confusion. Where this is not logically possible (e.g., an extension that requires an accompanying change in the behavior of an existing PMIx function), then all applicable labels shall be provided.
 
+## Action
+The RFC administrators will mark the RFC with one of the following labels, along with the date of the indicated action:
+
+* [APPROVED] - upon final approval of the RFC. This will include
+  the date the PR was committed to the master, and the commit SHA.
+* [WITHDRAWN] - proposal has been withdrawn from consideration. This typically
+   will be done when alternative proposals yield a preferred solution.
+* [REJECTED] - community decided not to commit the proposed changes.
+
 ## Copyright Notice
 This document is subject to all provisions relating to code contributions to the PMIx community as defined in the community's [LICENSE](https://github.com/pmix/RFCs/tree/master/LICENSE) file. Code Components extracted from this document must include the License text as described in that file.
 
