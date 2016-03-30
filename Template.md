@@ -22,7 +22,7 @@ While it is permissible to combine these labels in a single RFC, best practices 
 The RFC administrators will mark the RFC with one of the following labels, along with the date of the indicated action:
 
 * [APPROVED] - upon final approval of the RFC. This will include
-  the date the PR was committed to the master, and the commit SHA.
+  the date the RFC was accepted, the date the code PR was committed to the master, and the commit SHA.
 * [WITHDRAWN] - proposal has been withdrawn from consideration. This typically
    will be done when alternative proposals yield a preferred solution.
 * [REJECTED] - community decided not to commit the proposed changes.
