@@ -15,6 +15,9 @@ Provide at least one of the following labels:
 * [BEHAVIOR] - modifies the underlying behavior of an existing PMIx function
 * [ORGANIZATION] - changes the organization of the existing files, perhaps
   moving files across directories
+* [CLIENT-API] - modifies/extends the client-side API
+* [SERVER-API] - modifies/extends the server-side API
+* [RM-INTERFACE] - modifies/extends the interface to the host resource manager
 
 While it is permissible to combine these labels in a single RFC, best practices are to separate such operations into individual RFCs. For example, it is requested that authors separate modifications from extensions to avoid confusion. Where this is not logically possible (e.g., an extension that requires an accompanying change in the behavior of an existing PMIx function), then all applicable labels shall be provided.
 
