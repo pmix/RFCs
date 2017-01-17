@@ -5,7 +5,7 @@ The RFC number will be provided upon submission.
 Provide a mechanism by which an application can query the resource manager to obtain the time remaining in its allocation.
 
 ## Abstract
-Inspired by [libyogrt](https://github.com/LLNL/libyogrt), this proposes a standardized interface enabling an application to query the resource manager for the time remaining time in its allocation.  Such information is useful in order for an application to shut down gracefully before its allocation ends.
+Inspired by [libyogrt](https://github.com/LLNL/libyogrt), this proposes a standardized interface enabling an application to query the resource manager for the remaining time in its allocation.  Such information is useful in order for an application to shut down gracefully before its allocation ends.
 
 ## Labels
 [EXTENSION]
@@ -25,20 +25,18 @@ This document is subject to all provisions relating to code contributions to the
 ## Description
 Time-shared systems impose maximum run times on applications when assiging resource allocations.  For applications to shut down gracefully, e.g., to write a checkpoint before termination, it is necessary for applications to periodically query the resource manager for the time remaining in the allocation.  This is especially true on systems for which allocation times may be shortened or lengthened from the original time limit.  Many resource managers provide APIs to dynamically obtain this information (e.g., slurm\_get\_rem\_time() in SLURM), but each API is specific to the resource manager.
 
-This proposal defines new PMIx attributes and semantics to provide a uniform interface to obtain the time remaining in a job allocation.  The semantics defined here are inspired by the lessons learned from the "Your One Get Remaining Time Library" [libyogrt](https://github.com/LLNL/libyogrt).
-
-This RFC involves two extensions to the code base:
+This proposal defines new PMIx attributes and semantics to provide a uniform interface to obtain the time remaining in a job allocation.  The semantics defined here are inspired by experiences from the development and use of the "Your One Get Remaining Time Library" [libyogrt](https://github.com/LLNL/libyogrt).
 
   New standard attributes are defined in pmix\_common.h:
 
-  * #define PMIX\_TIME\_REMAINING "pmix.time.remaining" - (uint32\_t) get number of seconds remaining in allocation
-  * #define PMIX\_TIME\_INTERVAL  "pmix.time.interval"  - (uint32\_t) set/get the number of seconds for which the PMIx client library may cache the remaining time without issuing a new query to the server
+  * define PMIX\_TIME\_REMAINING "pmix.time.remaining" - (uint32\_t) get number of seconds remaining in allocation
+  * define PMIX\_TIME\_INTERVAL  "pmix.time.interval"  - (uint32\_t) set/get the number of seconds for which the PMIx client library may cache the remaining time without issuing a new query to the server
 
-  To mitigate problems due to distributed clocks, only the process having rank 0 as returned in PMIx\_Init may execute put and get calls with these keys.  The PMIx client library shall return an error for all other ranks.
+  To mitigate problems due to distributed clocks, only the process having rank 0 as returned in PMIx\_Init may execute PMIx\_Put and PMIx\_Get calls using these keys.  The PMIx client library shall return an error for all other ranks.
 
-  For efficiency, the PMIx client library may cache the most recent query to the resource manager and estimate the remaining time using the current system time and simple arithmetic.  The PMIx client librar may cache the result of its most recent query for the number of seconds as given by the interval specified by the PMIX\_TIME\_INTERVAL value.  After this internal, the PMIx must issue a new query to the resource manager.  An application may adjust the cache interval by issuing a PMIx\_Put of a new value.
+  For efficiency, the PMIx client library may cache the most recent query to the resource manager and estimate the remaining time using the current system time and simple arithmetic.  The PMIx client library may cache the result of its most recent query for the number of seconds as given by the PMIX\_TIME\_INTERVAL value.  After this interval, the PMIx must issue a new query to the resource manager.  An application may adjust the cache interval by issuing a PMIx\_Put of a new PMIX\_TIME\_INTERVAL value.
 
-  The following illustrates example usage of these keys:
+  The following example illustrates usage of these keys:
 
   ```c
   pmix_proc_t myproc;
@@ -68,12 +66,10 @@ This RFC involves two extensions to the code base:
     /* set new interval for caching time remaining query to be 60 seconds */
     value.type = PMIX_UINT32;
     value.data.uint32 = 60;
-    if (PMIX_SUCCESS != (rc = PMIx_Put(PMIX\_LOCAL, PMIX_TIME_INTERVAL, &value))) {
+    if (PMIX_SUCCESS != (rc = PMIx_Put(PMIX_LOCAL, PMIX_TIME_INTERVAL, &value))) {
         fprintf(stderr, "Client ns %s rank %d: PMIx_Put time interval failed: %d\n", myproc.nspace, myproc.rank, rc);
         goto done;
     }
-    fprintf(stderr, "Client %s:%d seconds to cache time remaining query %d\n", myproc.nspace, myproc.rank, time_interval);
-
     if (PMIX_SUCCESS != (rc = PMIx_Commit())) {
         fprintf(stderr, "Client ns %s rank %d: PMIx_Commit failed: %d\n", myproc.nspace, myproc.rank, rc);
         goto done;
