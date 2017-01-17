@@ -90,6 +90,6 @@ This proposal defines new PMIx attributes and semantics to provide a uniform int
 Provide a reference link to the accompanying Pull Request (PR) against the PMIx master repository. If the prototype implementation has been tested against an appropriately modified resource manager and/or client program, then references to those prototypes should be provided. Note that approval of any RFC will be far more likely to happen if such validation has been performed!
 
 ## Author(s)
-Adam Moody
-Lawrence Livermore National Laboratory
-Github: adammoody
+Adam Moody  
+Lawrence Livermore National Laboratory  
+Github: adammoody  
