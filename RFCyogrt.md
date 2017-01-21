@@ -5,7 +5,7 @@ The RFC number will be provided upon submission.
 Provide a mechanism by which an application can query the resource manager to obtain the time remaining in its allocation.
 
 ## Abstract
-Inspired by [libyogrt](https://github.com/LLNL/libyogrt), this proposes a standardized interface enabling an application to query the resource manager for the remaining time in its allocation.  Such information is useful in order for an application to shut down gracefully before its allocation ends.
+Inspired by [libyogrt](https://github.com/LLNL/libyogrt), this proposes a standard interface to enable an application to query the resource manager for the remaining time in its allocation.  Such information is useful in order for an application to shut down gracefully before its allocation ends.
 
 ## Labels
 [EXTENSION]
@@ -23,66 +23,72 @@ The RFC administrators will mark the RFC with one of the following labels, along
 This document is subject to all provisions relating to code contributions to the PMIx community as defined in the community's [LICENSE](https://github.com/pmix/RFCs/tree/master/LICENSE) file. Code Components extracted from this document must include the License text as described in that file.
 
 ## Description
-Time-shared systems impose maximum run times on applications when assinging jobs to resource allocations.  For applications to shut down gracefully, e.g., to write a checkpoint before termination, it is necessary for applications to periodically query the resource manager for the time remaining in the allocation.  This is especially true on systems for which allocation times may be shortened or lengthened from the original time limit.  Many resource managers provide APIs to dynamically obtain this information (e.g., slurm\_get\_rem\_time() in SLURM), but each API is specific to the resource manager.
+Time-shared systems impose maximum run times when assigning jobs to resource allocations.  For applications to shut down gracefully, e.g., to write a checkpoint before termination, it is necessary for applications to periodically query the resource manager for the time remaining in its allocation.  This is especially true on systems for which allocation times may be shortened or lengthened from the original time limit.  Many resource managers provide APIs to dynamically obtain this information, but each API is specific to the resource manager, for example:
 
-This proposal defines new PMIx attributes and semantics to provide a uniform interface to obtain the time remaining in a job allocation.  The semantics defined here are inspired by experiences from the development and use of "Your One Get Remaining Time Library" [libyogrt](https://github.com/LLNL/libyogrt).
+  * SLURM - slurm\_get\_rem\_time()
+  * MOAB - MCCJobGetRemainingTime()
 
-  New standard attributes are defined in pmix\_common.h:
+This proposal defines a new PMIx key and semantics to provide a uniform interface to obtain the time remaining in a job allocation.  The semantics defined here are inspired by experiences from the development and use of "Your One Get Remaining Time Library" [libyogrt](https://github.com/LLNL/libyogrt).
+
+A new standard PMIx key is defined in pmix\_common.h:
 
   * define PMIX\_TIME\_REMAINING "pmix.time.remaining" - (uint32\_t) get number of seconds remaining in allocation
-  * define PMIX\_TIME\_INTERVAL  "pmix.time.interval"  - (uint32\_t) set/get the number of seconds for which the PMIx client library may cache the remaining time without issuing a new query to the server
 
-To mitigate problems due to distributed clocks, only the process having rank 0 as returned in PMIx\_Init may execute PMIx\_Put and PMIx\_Get calls using these keys.  The PMIx client library shall return an error for all other ranks.
+This key can be used with the PMIx_Query interface to obtain the number of seconds remaining in the current job allocation.  If all processes in a job must obtain this value, it is recommended that the user query the remaining time from a single process and broadcast the value to other processes.
 
-For efficiency, the PMIx client library may cache the most recent query to the resource manager and estimate the remaining time using the current system time and simple arithmetic.  The PMIx client library may cache the result of its most recent query for the number of seconds as given by the PMIX\_TIME\_INTERVAL value.  After this interval, the PMIx must issue a new query to the resource manager.  An application may adjust the cache interval by issuing a PMIx\_Put of a new PMIX\_TIME\_INTERVAL value.
-
-The following example illustrates usage of these keys:
+The following example illustrates usage of this key:
 
   ```c
-  pmix_proc_t myproc;
-  int rc;
-  pmix_value_t value;
-  pmix_value_t *val = &value;
-  size_t n;
+  static uint32_t seconds_remaining;
 
-  /* init us */
-  if (PMIX_SUCCESS != (rc = PMIx_Init(&myproc))) {
-      fprintf(stderr, "Client ns %s rank %d: PMIx_Init failed: %d\n", myproc.nspace, myproc.rank, rc);
-      exit(0);
+  static void cbfunc(pmix_status_t status,
+                     pmix_info_t *info, size_t ninfo,
+                     void *cbdata,
+                     pmix_release_cbfunc_t release_fn,
+                     void *release_cbdata)
+  {
+      volatile bool *waiting = (volatile bool*)cbdata;
+
+      /* read time_remaining */
+      seconds_remaining = ... how to read from info struct? ...
+
+      if (NULL != release_fn) {
+          release_fn(release_cbdata);
+      }
+      *waiting = false;
   }
-  fprintf(stderr, "Client ns %s rank %d: Running\n", myproc.nspace, myproc.rank);
+ 
+  int main(int argc, char **argv)
+  {
+      volatile bool waiting;
 
-  /* only valid for myproc.rank == 0 to make time remaining calls */
-  if (myproc.rank == 0) {
-    /* get current interval for caching time remaining query */
-    if (PMIX_SUCCESS != (rc = PMIx_Get(&myproc, PMIX_TIME_INTERVAL, NULL, 0, &val))) {
-        fprintf(stderr, "Client ns %s rank %d: PMIx_Get time interval failed: %d\n", myproc.nspace, myproc.rank, rc);
-        goto done;
-    }
-    uint32_t time_interval = val->data.uint32;
-    PMIX_VALUE_RELEASE(val);
-    fprintf(stderr, "Client %s:%d seconds to cache time remaining query %d\n", myproc.nspace, myproc.rank, time_interval);
+      /* init us */
+      pmix_proc_t myproc;
+      if (PMIX_SUCCESS != (rc = PMIx_Init(&myproc))) {
+          fprintf(stderr, "Client ns %s rank %d: PMIx_Init failed: %d\n", myproc.nspace, myproc.rank, rc);
+          exit(0);
+      }
+      fprintf(stderr, "Client ns %s rank %d: Running\n", myproc.nspace, myproc.rank);
 
-    /* set new interval for caching time remaining query to be 60 seconds */
-    value.type = PMIX_UINT32;
-    value.data.uint32 = 60;
-    if (PMIX_SUCCESS != (rc = PMIx_Put(PMIX_LOCAL, PMIX_TIME_INTERVAL, &value))) {
-        fprintf(stderr, "Client ns %s rank %d: PMIx_Put time interval failed: %d\n", myproc.nspace, myproc.rank, rc);
-        goto done;
-    }
-    if (PMIX_SUCCESS != (rc = PMIx_Commit())) {
-        fprintf(stderr, "Client ns %s rank %d: PMIx_Commit failed: %d\n", myproc.nspace, myproc.rank, rc);
-        goto done;
-    }
+      /* just query with one rank, we'll bcast result to others */
+      if (myproc.rank == 0) {
+        /* query time remaining */
+        pmix_query_t *q;
+        size_t nq = 1;
+        PMIX_QUERY_CREATE(q, nq);
+        PMIX_ARGV_APPEND(q[0].keys, PMIX_TIME_REMAINING);
 
-    /* get seconds remaining in allocation */
-    if (PMIX_SUCCESS != (rc = PMIx_Get(&myproc, PMIX_TIME_REMAINING, NULL, 0, &val))) {
-        fprintf(stderr, "Client ns %s rank %d: PMIx_Get time remaining failed: %d\n", myproc.nspace, myproc.rank, rc);
-        goto done;
-    }
-    uint32_t secs_remaining = val->data.uint32;
-    PMIX_VALUE_RELEASE(val);
-    fprintf(stderr, "Client %s:%d seconds remaining in allocation %d\n", myproc.nspace, myproc.rank, secs_remaining);
+        waiting = true;
+        PMIx_Query_info_nb(q, nq, cbfunc, (void*)&waiting);
+        while (waiting) {
+          usleep(10);
+        }
+
+        /* seconds_remaining now has time left */
+      }
+
+      PMIx_Finalize(NULL, 0);
+      return 0;
   }
   ```
   
