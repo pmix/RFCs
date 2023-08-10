@@ -1,6 +1,10 @@
 # RFCs
 Proposed modifications, additions, and-or subtractions to the PMIx definitions
 
+**This process has been superceded by the PMIx Administrative Steering Commitee procedures**
+  
+**https://github.com/pmix/pmix-standard#contributing-to-the-pmix-standard**
+
 ## Submission Procedure
 A "Request For Comment" shall be submitted prior to modifying any existing API, adding new APIs to the PMIx definitions, or substantially modifying the behavior of an existing part of the code. The intent of this procedure is to provide adequate oversight of the PMIx definitions, and to aid in community dialog prior to adopting changes.
 
